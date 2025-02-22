@@ -1,0 +1,15 @@
+const Account = require("../models/account");
+
+exports.createaccount = async (req, res) => {
+  try {
+    const { user_id } = req.body;
+    
+    const newAccount = new Account({ user_id, balance: 0 });
+    await newAccount.save();
+    res
+      .status(201)
+      .json({ message: "Account created successfully", account: newAccount });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
