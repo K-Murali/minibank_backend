@@ -71,3 +71,17 @@ exports.getBalance = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+exports.getTransactions = async (req, res) => {
+  try {
+    const { account_id } = req.params;
+
+    let transactions = await Transaction.find({ account_id }); // Fetch transactions for the account
+    if (!transactions.length)
+      return res.status(404).json({ message: "No transactions found" });
+
+    res.status(200).json({ transactions });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
