@@ -3,18 +3,19 @@ const Transaction = require("../models/transaction");
 
 exports.depositMoney = async (req, res) => {
   try {
-    const { account_id, amount, type } = req.body;
+    const { amount, type } = req.body;
+
     if (type != "deposit") {
       return res.status(400).json({ message: "Invalid transaction type" });
     }
-    let account = await Account.findById(account_id);
+    const { user_id } = req.params;
+    let account = await Account.findOne({ user_id });
     if (!account) return res.status(404).json({ message: "Account not found" });
-
-    account.balance += amount;
+    account.balance += amount * 1;
     await account.save();
 
     const transaction = new Transaction({
-      account_id,
+      account_id: account._id,
       amount,
       type: "Deposit",
     });
@@ -30,12 +31,13 @@ exports.depositMoney = async (req, res) => {
 
 exports.withdrawMoney = async (req, res) => {
   try {
-    const { account_id, amount, type } = req.body;
+    const { amount, type } = req.body;
+    const { user_id } = req.params;
     if (type == "deposite") {
       return res.status(400).json({ message: "Invalid transaction type" });
     }
 
-    let account = await Account.findById(account_id);
+    let account = await Account.findOne({ user_id });
     if (!account) return res.status(404).json({ message: "Account not found" });
 
     if (account.balance < amount)
@@ -45,7 +47,7 @@ exports.withdrawMoney = async (req, res) => {
     await account.save();
 
     const transaction = new Transaction({
-      account_id,
+      account_id: account._id,
       amount,
       type: "Withdraw",
     });
@@ -60,13 +62,12 @@ exports.withdrawMoney = async (req, res) => {
 };
 exports.getBalance = async (req, res) => {
   try {
-    const { account_id } = req.params;
-    console.log(account_id);
+    const { user_id } = req.params;
+    console.log("user" + user_id);
+    let acc = await Account.findOne({ user_id });
+    if (!acc) return res.status(200).json({ message: "Account not found" });
 
-    let account = await Account.findById(account_id);
-    if (!account) return res.status(404).json({ message: "Account not found" });
-
-    res.status(200).json({ balance: account.balance });
+    res.status(200).json({ balance: acc.balance });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -74,11 +75,17 @@ exports.getBalance = async (req, res) => {
 
 exports.getTransactions = async (req, res) => {
   try {
-    const { account_id } = req.params;
+    const { user_id } = req.params;
 
-    let transactions = await Transaction.find({ account_id }); // Fetch transactions for the account
+    // Find the user's account
+    let acc = await Account.findOne({ user_id });
+    if (!acc) return res.status(200).json({ message: "Account not found" });
+
+    // Fetch transactions linked to the account
+    let transactions = await Transaction.find({ account_id: acc._id });
+
     if (!transactions.length)
-      return res.status(404).json({ message: "No transactions found" });
+      return res.status(200).json({ message: "No transactions found" });
 
     res.status(200).json({ transactions });
   } catch (error) {
