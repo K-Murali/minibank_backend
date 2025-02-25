@@ -3,7 +3,10 @@ const Account = require("../models/account");
 exports.createaccount = async (req, res) => {
   try {
     const { user_id } = req.body;
-    
+    const existingAccount = await Account.findOne({ user_id });
+    if (existingAccount) {
+      return res.status(400).json({ message: "User already has an account" });
+    }
     const newAccount = new Account({ user_id, balance: 0 });
     await newAccount.save();
     res
