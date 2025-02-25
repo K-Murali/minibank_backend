@@ -23,7 +23,9 @@ const create_send_token = (user, statuscode, res) => {
 };
 exports.signup = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    console.log("called");
+
+    const { name, number, age, email, password } = req.body;
     const userExist = await User.findOne({ email });
     if (userExist) {
       return res.json({
@@ -33,11 +35,11 @@ exports.signup = async (req, res) => {
     }
     const secpass = await bcrypt.hash(password, 12);
 
-    const user = new User({ name, email, password: secpass });
+    const user = new User({ name, number, age, email, password: secpass });
     newuser = await user.save();
     create_send_token(newuser, 201, res);
   } catch (e) {
-    res.status(500).json({ status: "fail", user, message: e.message });
+    res.status(500).json({ status: "fail", message: e.message });
   }
 };
 exports.login = async (req, res) => {
